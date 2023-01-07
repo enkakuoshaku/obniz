@@ -1,6 +1,5 @@
 <html>
   <head>
-    
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
@@ -13,41 +12,51 @@
       <div class="text-center">
         <h3>Print Text on obniz</h3>
         <input type="text" id="text" value="Hello World" />
-        <button class="btn btn-primary" id="showtime">Print on obniz</button>
+        <button class="btn btn-primary" id="showtime">obnizに表示</button>
       </div>
 
       <div class="text-center">
-        <h5 style="margin-top:20px;">Display Switch State on obniz</h3>
+        <h5 style="margin-top:20px;">obnizのスイッチの状態</h3>
         <div id="print"></div>
+      </div>
+      <div class="text-center">
+        <img src="./images/tokkuri1.png" class="">
       </div>
     </div>
 
     <script>
-      //put your obniz ID
+      // obniz ID
       var obniz = new Obniz("OBNIZ_ID_HERE");
 
-      //during obniz connection
+      // obniz接続時
       obniz.onconnect = async function() {
-        //init switch state on obniz
+        // スイッチ状態を初期化
         $("#print").text(await obniz.switch.getWait());
 
-        //if the "Print on obniz" clicked
+        // ボタン押下
         $("#showtime").on("click", function() {
-          //show input text on obniz display
+          // obnizのディスプレイに入力テキストを表示
           obniz.display.clear();
           obniz.display.print($("#text").val());
         });
 
-        //if the switch state changes
+        // スイッチの状態が変化した場合
         obniz.switch.onchange = function(state) {
-          //show the state on browser
+          // 状態をブラウザに表示する
           $("#print").text(state);
-          //show the state on obniz display
+          // obnizのディスプレイに状態を表示する
           obniz.display.clear();
           obniz.display.print(state);
         };
-
       };
+
+      obniz.on('connect', async() => {
+        console.log("a connect event occurred!");
+      });
+      obniz.on('close', () => {
+        console.log("a close event occurred!");
+      });
+
     </script>
   </body>
 </html>
