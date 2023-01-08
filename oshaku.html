@@ -46,10 +46,12 @@
         OBNIZ_ID = "OBNIZ_ID_HERE"
       }
       // obniz ID
-      const obniz = new Obniz(OBNIZ_ID);
+      var _obniz = new Obniz(OBNIZ_ID);
 
+      var _servo = null;
       var _time = new Date().getTime();
       var _angle = -1000;
+      var _cangle = 0;
       var _device = 'iphone';
       if (USERAGENT.indexOf('iphone') == -1) {
 //        _device = 'android';
@@ -59,6 +61,14 @@
         _device = PARAMS.get('devie');
       }
       console.log('_device', _device);
+      var _offset = 0;
+      if (PARAMS.get('offset')) {
+        _offset = parseInt(PARAMS.get('offset'));
+      }
+      var _reverse = null;
+      if (PARAMS.get('reverse')) {
+        _reverse = PARAMS.get('reverse');
+      }
 
       // 傾きイベントの処理
       function handleOrientation(event) {
@@ -78,14 +88,14 @@
 //          var x = event.beta;  // -180 から 180 の範囲で角度を示す
 //          val = parseInt(Math.abs(x + 90));
         }
+        val = Math.abs(val - 180)
         if (Math.abs(_angle - val) > 2) {
           // 状態をブラウザに表示する
           $("#print").text('角度:' + val);
           // obnizのディスプレイに状態を表示する
-          obniz.display.clear();
-          obniz.display.print('角度:' + val);
-
           _angle = val;
+          _obniz.display.clear();
+          _obniz.display.print("角度:" + Math.round(_angle) + " => " + Math.round(_cangle));
         }
       }
 
@@ -123,40 +133,62 @@
       }
 
       // obniz接続時
-      obniz.onconnect = async function() {
+      _obniz.onconnect = async function() {
+        _servo = _obniz.wired("ServoMotor", {gnd:0, vcc:1, signal:2});
         // スイッチ状態を初期化
-        $("#print").text(await obniz.switch.getWait());
+        $("#print").text(await _obniz.switch.getWait());
 /*
         // ボタン押下
         $("#showtime").on("click", function() {
           // obnizのディスプレイに入力テキストを表示
-          obniz.display.clear();
-          obniz.display.print($("#text").val());
+          _obniz.display.clear();
+          _obniz.display.print($("#text").val());
         });
 */
         // スイッチの状態が変化した場合
-        obniz.switch.onchange = function(state) {
+        _obniz.switch.onchange = function(state) {
           // 状態をブラウザに表示する
           $("#print").text(state);
           // obnizのディスプレイに状態を表示する
-          obniz.display.clear();
-          obniz.display.print(state);
+          _obniz.display.clear();
+          _obniz.display.print(state);
         };
         if (_device == 'tablet') {
           window.addEventListener('devicemotion', handleOrientation);
         } else if (_device == 'android') {
           window.addEventListener('deviceorientation', handleOrientation);
         }
+        setTimeout(move, 500);
       };
 
-      obniz.on('connect', async() => {
+      _obniz.on('connect', async() => {
         console.log("on coonect");
         alert("on coonect \n" + USERAGENT);
       });
-      obniz.on('close', () => {
+      _obniz.on('close', () => {
         console.log("on close");
         alert("on close");
       });
+
+      // サーボをゆっくり動かすため、100ミリ秒毎に動かす
+      function move() {
+        if (_obniz && _servo) {
+          var diff = _cangle - _angle;
+          if (Math.abs(diff) > 3) {
+            if (diff < 0) {
+              _cangle += 2;
+            } else {
+              _cangle -= 2;
+            }
+            _obniz.display.clear();
+            _obniz.display.print("角度:" + Math.round(_angle) + " => " + Math.round(_cangle));
+            // サーボを回転
+            var val = _reverse ? Math.abs(_cangle - 180) : _cangle; 
+            _servo.angle(val + _offset);    // キャリブレーション値
+          }
+        }
+        setTimeout(move, 100);
+      }
 
     </script>
   </body>

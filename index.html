@@ -10,7 +10,7 @@
     <div class="container">
       <div class="text-center">
         <h3>遠隔お酌</h3>
-        <input type="number" id="text" placeholder="obnizID" />
+        <input type="number" id="obnizid" placeholder="obnizID" />
 
         <div class="form-check">
           <input class="form-check-input" type="radio" name="device" id="iphone" value = "iphone" checked>
@@ -24,21 +24,31 @@
           <input class="form-check-input" type="radio" name="device" id="tablet" value = "tablet">
           <label class="form-check-label" for="tablet">Androidタブレット</label>
         </div>
-
+        <br />
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="check" id="reverse">
+          <label class="form-check-label" for="reverse">逆回転</label>
+        </div>
+        <div class="form-check">
+          <input type="number" id="offset" placeholder="オフセット" />
+        </div>
+        <br />
         <button class="btn btn-primary" id="btn">お酌画面へ</button>
       </div>
     </div>
 
     <script>
       $("#btn").click(function() {
-        const obniz_id = $("#text").val();
+        const obniz_id = $("#obnizid").val();
         if (!obniz_id) {
           alert("obnizIDを入力してください");
         } else if (obniz_id.length < 8) {
           alert("８桁でobnizIDを入力して");
         } else {
           const device = $('input:radio[name="device"]:checked').val();
-          const url = "./oshaku.html?obniz_id=" + obniz_id + "&device=" + device;
+          const reverse = $('input[name=check]:checked').val() ? "on" : "";
+          const offset = $("#offset").val();
+          const url = "./oshaku.html?obniz_id=" + obniz_id + "&device=" + device + "&reverse=" + reverse + "&offset=" + offset;
           console.log(url);
           location.href = url;
         }
