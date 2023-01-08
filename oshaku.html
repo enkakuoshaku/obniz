@@ -105,21 +105,21 @@
         ) {
           DeviceOrientationEvent.requestPermission();
         }
-        document.getElementById("btn").style.display="none";
-        document.getElementById("msg1").style.display="none";
-        document.getElementById("msg2").style.display="none";
-        document.getElementById("img").style.display="block";
+        $("#btn").css("display", "none");
+        $("#msg1").css("display", "none");
+        $("#msg2").css("display", "none");
+        $("#img").css("display", "block");
         window.addEventListener('deviceorientation', handleOrientation);
       }
 
       // 初期画面
       if (_device == 'iphone') {
-        document.getElementById("img").style.display="none";
+        $("#img").css("display", "none");
       } else {
-        document.getElementById("btn").style.display="none";
-        document.getElementById("msg1").style.display="none";
-        document.getElementById("msg2").style.display="none";
-        document.getElementById("img").style.display="block";
+        $("#btn").css("display", "none");
+        $("#msg1").css("display", "none");
+        $("#msg2").css("display", "none");
+        $("#img").css("display", "block");
       }
 
       // obniz接続時
