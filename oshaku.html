@@ -1,0 +1,163 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>遠隔お酌</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://unpkg.com/obniz@3.x/obniz.js" crossorigin="anonymous" ></script>
+  </head>
+  <body>
+    <div id="obniz-debug"></div>
+    <div class="container">
+      <div class="text-center">
+        <h3>遠隔お酌</h3>
+        <!--
+        <input type="text" id="text" value="Hello World" />
+        <button class="btn btn-primary" id="showtime">obnizに表示</button>
+        -->
+      </div>
+
+      <div class="text-center">
+        <div id="msg1">スマホの傾きを検知するのに加速度センサを利用します</div>
+        <div id="msg2">ボタンを押してください</div>
+        <button id="btn" onclick="request_permission()" class="btn btn-primary">加速度センサの有効化</button>
+      </div>
+
+      <div class="text-center">
+        <!--
+        <h5 style="margin-top:20px;">obnizのスイッチの状態</h3>
+        -->
+        <div id="print"></div>
+      </div>
+      <div class="text-center">
+        <img id="img" src="https://enkakuoshaku.github.io/obniz/images/tokkuri1.png" class="" width="100%">
+      </div>
+    </div>
+
+    <script>
+      const USERAGENT = window.navigator.userAgent.toLowerCase();
+      console.log('useragent', USERAGENT);
+      // URLパラメータを取得
+      const PARAMS = (new URL(window.location.href)).searchParams;
+      const OBNIZ_ID = PARAMS.get('obniz_id');
+      console.log('obniz_id', OBNIZ_ID);
+      if (!OBNIZ_ID) {
+        OBNIZ_ID = "OBNIZ_ID_HERE"
+      }
+      // obniz ID
+      const obniz = new Obniz(OBNIZ_ID);
+
+      var _time = new Date().getTime();
+      var _angle = -1000;
+      var _device = 'iphone';
+      if (USERAGENT.indexOf('iphone') == -1) {
+//        _device = 'android';
+        _device = 'tablet';
+      }
+      if (PARAMS.get('devie')) {
+        _device = PARAMS.get('devie');
+      }
+      console.log('_device', _device);
+
+      // 傾きイベントの処理
+      function handleOrientation(event) {
+        time = new Date().getTime();
+        if (_time + 100 < time) {       // 200ms経った？
+          _time = time
+        } else {
+          return;
+        }
+        var val = 0;
+        if (_device != 'tablet') {
+          var x = event.beta;  // -180 から 180 の範囲で角度を示す
+          val = parseInt(Math.abs(x + 90));
+        } else {
+          var y = event.accelerationIncludingGravity.y; // -10 から 10 の範囲で角度を示す
+          val = parseInt(Math.abs((y + 10) * 9));
+//          var x = event.beta;  // -180 から 180 の範囲で角度を示す
+//          val = parseInt(Math.abs(x + 90));
+        }
+        if (Math.abs(_angle - val) > 2) {
+          // 状態をブラウザに表示する
+          $("#print").text('角度:' + val);
+          // obnizのディスプレイに状態を表示する
+          obniz.display.clear();
+          obniz.display.print('角度:' + val);
+
+          _angle = val;
+        }
+      }
+
+      // iphoneの場合、確認ボタンを押させる
+      function request_permission() {
+        if (
+          DeviceMotionEvent &&
+          DeviceMotionEvent.requestPermission &&
+          typeof DeviceMotionEvent.requestPermission === 'function'
+        ) {
+          DeviceMotionEvent.requestPermission();
+        }
+        if (
+          DeviceOrientationEvent &&
+          DeviceOrientationEvent.requestPermission &&
+          typeof DeviceOrientationEvent.requestPermission === 'function'
+        ) {
+          DeviceOrientationEvent.requestPermission();
+        }
+        document.getElementById("btn").style.display="none";
+        document.getElementById("msg1").style.display="none";
+        document.getElementById("msg2").style.display="none";
+        document.getElementById("img").style.display="block";
+        window.addEventListener('deviceorientation', handleOrientation);
+      }
+
+      // 初期画面
+      if (_device == 'iphone') {
+        document.getElementById("img").style.display="none";
+      } else {
+        document.getElementById("btn").style.display="none";
+        document.getElementById("msg1").style.display="none";
+        document.getElementById("msg2").style.display="none";
+        document.getElementById("img").style.display="block";
+      }
+
+      // obniz接続時
+      obniz.onconnect = async function() {
+        // スイッチ状態を初期化
+        $("#print").text(await obniz.switch.getWait());
+/*
+        // ボタン押下
+        $("#showtime").on("click", function() {
+          // obnizのディスプレイに入力テキストを表示
+          obniz.display.clear();
+          obniz.display.print($("#text").val());
+        });
+*/
+        // スイッチの状態が変化した場合
+        obniz.switch.onchange = function(state) {
+          // 状態をブラウザに表示する
+          $("#print").text(state);
+          // obnizのディスプレイに状態を表示する
+          obniz.display.clear();
+          obniz.display.print(state);
+        };
+        if (_device == 'tablet') {
+          window.addEventListener('devicemotion', handleOrientation);
+        } else if (_device == 'android') {
+          window.addEventListener('deviceorientation', handleOrientation);
+        }
+      };
+
+      obniz.on('connect', async() => {
+        console.log("on coonect");
+        alert("on coonect \n" + USERAGENT);
+      });
+      obniz.on('close', () => {
+        console.log("on close");
+        alert("on close");
+      });
+
+    </script>
+  </body>
+</html>

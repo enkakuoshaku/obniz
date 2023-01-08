@@ -4,59 +4,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <script src="https://unpkg.com/obniz@3.x/obniz.js" crossorigin="anonymous" ></script>
   </head>
   <body>
     <div id="obniz-debug"></div>
     <div class="container">
       <div class="text-center">
-        <h3>Print Text on obniz</h3>
-        <input type="text" id="text" value="Hello World" />
-        <button class="btn btn-primary" id="showtime">obnizに表示</button>
-      </div>
+        <h3>遠隔お酌</h3>
+        <input type="text" id="text" placeholder="obnizID" />
 
-      <div class="text-center">
-        <h5 style="margin-top:20px;">obnizのスイッチの状態</h3>
-        <div id="print"></div>
-      </div>
-      <div class="text-center">
-        <img src="./images/tokkuri1.png" class="">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="device" id="iphone" value = "iphone" checked>
+          <label class="form-check-label" for="iphone">iPhone</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="device" id="android" value = "android">
+          <label class="form-check-label" for="android">Android</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="device" id="tablet" value = "tablet">
+          <label class="form-check-label" for="tablet">Androidタブレット</label>
+        </div>
+
+        <button class="btn btn-primary" id="btn">お酌画面へ</button>
       </div>
     </div>
 
     <script>
-      // obniz ID
-      var obniz = new Obniz("OBNIZ_ID_HERE");
-
-      // obniz接続時
-      obniz.onconnect = async function() {
-        // スイッチ状態を初期化
-        $("#print").text(await obniz.switch.getWait());
-
-        // ボタン押下
-        $("#showtime").on("click", function() {
-          // obnizのディスプレイに入力テキストを表示
-          obniz.display.clear();
-          obniz.display.print($("#text").val());
-        });
-
-        // スイッチの状態が変化した場合
-        obniz.switch.onchange = function(state) {
-          // 状態をブラウザに表示する
-          $("#print").text(state);
-          // obnizのディスプレイに状態を表示する
-          obniz.display.clear();
-          obniz.display.print(state);
-        };
-      };
-
-      obniz.on('connect', async() => {
-        console.log("a connect event occurred!");
+      $("#btn").click(function() {
+        const obniz_id = $("#text").val();
+        if (!obniz_id) {
+          alert("obnizIDを入力してください");
+        } else if (obniz_id.length < 8) {
+          alert("８桁でobnizIDを入力して");
+        } else {
+          const device = $('input:radio[name="device"]:checked').val();
+          const url = "./oshaku.html?obniz_id=" + obniz_id + "&device=" + device;
+          console.log(url);
+          location.href = url;
+        }
       });
-      obniz.on('close', () => {
-        console.log("a close event occurred!");
-      });
-
     </script>
   </body>
 </html>
